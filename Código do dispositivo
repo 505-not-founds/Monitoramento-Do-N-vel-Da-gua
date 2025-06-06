@@ -1,98 +1,93 @@
-#include <EEPROM.h>
+#include <EEPROM.h>  // Biblioteca para usar a memória EEPROM
 
-// Definindo as portas
+// Definição dos pinos conectados aos componentes
+#define buzzer    8           // Buzzer de alerta sonoro
+#define ECHO_PIN 10           // Pino ECHO do sensor ultrassônico (recebe o tempo do eco)
+#define TRIG_PIN  9           // Pino TRIG do sensor ultrassônico (dispara o pulso)
+#define ledGreen  6           // LED verde: situação segura
+#define ledYellow 5           // LED amarelo: nível de atenção
+#define ledRed    7           // LED vermelho: alerta de enchente
+#define botaoTragedia 2       // Botão para registrar manualmente uma tragédia
 
-#define buzzer 8
-#define ECHO_PIN 10
-#define TRIG_PIN 9
-#define ledGreen 6
-#define ledYellow 5
-#define ledRed 7
-#define botaoTragedia 2 // Botão para registrar manualmente
-#define EEPROM_ADDR 0   // Endereço para salvar o estado
+#define EEPROM_ADDR 0         // Endereço da EEPROM onde o estado será salvo
 
-void setup()
-{
-    Serial.begin(115200);
+bool tragediaGravada = false; // Variável que controla se uma tragédia já foi registrada
 
-    pinMode(ledGreen, OUTPUT);
-    pinMode(TRIG_PIN, OUTPUT);
-    pinMode(ECHO_PIN, INPUT);
-    pinMode(ledRed, OUTPUT);
-    pinMode(buzzer, OUTPUT);
-    pinMode(ledYellow, OUTPUT);
-    pinMode(botaoTragedia, INPUT_PULLUP);
+void setup() {
+  Serial.begin(9600);  
+  
+  pinMode(ledGreen, OUTPUT);
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+  pinMode(ledRed, OUTPUT);
+  pinMode(buzzer, OUTPUT);
+  pinMode(ledYellow, OUTPUT);
+  pinMode(botaoTragedia, INPUT_PULLUP); // Botão com resistor de pull-up interno
 
-    // Verifica se já houve alerta gravado
-    if (EEPROM.read(EEPROM_ADDR) == 1)
-    {
-        Serial.println(">>> ALERTA GRAVADO: Houve uma enchente anterior.");
-    }
+  // Verifica se já existe registro anterior salvo na EEPROM
+  if (EEPROM.read(EEPROM_ADDR) == 1) {
+    tragediaGravada = true;
+    Serial.println(">>> ALERTA GRAVADO: Houve uma enchente anterior.");
+  } else {
+    Serial.println(">>> Nenhuma tragédia registrada anteriormente.");
+  }
 }
 
-// Calcula a distancia até o nivel da água
-
-float readDistanceCM()
-{
-    digitalWrite(TRIG_PIN, LOW);
-    delayMicroseconds(2);
-    digitalWrite(TRIG_PIN, HIGH);
-    delayMicroseconds(10);
-    digitalWrite(TRIG_PIN, LOW);
-    int duration = pulseIn(ECHO_PIN, HIGH);
-    return duration * 0.034 / 2;
+// Função para ler a distância do sensor ultrassônico (em cm)
+float readDistanceCM() {
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);        // Dispara o pulso ultrassônico
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+  int duration = pulseIn(ECHO_PIN, HIGH); // Mede o tempo do eco
+  return duration * 0.034 / 2;            // Converte o tempo em centímetros
 }
 
-// Coloca no EEPROM a distancia em cm
+void loop() {
+  float distance = readDistanceCM();   // Lê a distância atual da água
+  Serial.print("Distância: ");
+  Serial.print(distance);
+  Serial.println(" cm");
 
-void loop()
-{
-    float distance = readDistanceCM();
-    Serial.print("Distância: ");
-    Serial.print(distance);
-    Serial.println(" cm");
+  bool Enchente = (distance < 15);     // Define critério para considerar uma enchente
 
-    bool Enchente = (distance < 15);
+  // Se botão for pressionado e ainda não houver registro, salva na EEPROM
+  if (digitalRead(botaoTragedia) == LOW && !tragediaGravada) {
+    EEPROM.update(EEPROM_ADDR, 1);
+    tragediaGravada = true;
+    Serial.println(">> TRAGÉDIA REGISTRADA MANUALMENTE!");
+    delay(1000); // Evita múltiplos registros por clique
+  }
 
-    // CASOS
+  // Se detectar enchente automaticamente
+  if (Enchente) {
+    tone(buzzer, 1000);  // Ativa buzzer
+    digitalWrite(ledRed, HIGH);    // Alerta vermelho
+    digitalWrite(ledGreen, LOW);
+    digitalWrite(ledYellow, LOW);
 
-    // Se botão foi pressionado (manual), grava alerta
-    if (digitalRead(botaoTragedia) == LOW)
-    {
-        EEPROM.update(EEPROM_ADDR, 1);
-        Serial.println(">> TRAGÉDIA REGISTRADA MANUALMENTE!");
-        delay(1000); // Debounce
+    // Salva registro de tragédia se ainda não tiver sido salvo
+    if (!tragediaGravada) {
+      EEPROM.update(EEPROM_ADDR, 1);
+      tragediaGravada = true;
+      Serial.println(">> TRAGÉDIA REGISTRADA AUTOMATICAMENTE!");
     }
 
-    // Caso o nivel da água esteja a 15cm ou menos do sensor
-    if (Enchente)
-    {
-        tone(buzzer, 1000);
-        digitalWrite(ledRed, HIGH);
-        digitalWrite(ledGreen, LOW);
-        digitalWrite(ledYellow, LOW);
-        EEPROM.update(EEPROM_ADDR, 1); // grava automático
-    }
+  } else if (distance < 100) {
+    // Situação intermediária: nível de atenção
+    noTone(buzzer);
+    digitalWrite(ledYellow, HIGH);
+    digitalWrite(ledRed, LOW);
+    digitalWrite(ledGreen, LOW);
 
-    // Caso o nivel da água esteja entre 16cm e 100cm
+  } else {
+    // Situação normal: água distante
+    noTone(buzzer);
+    digitalWrite(ledGreen, HIGH);
+    digitalWrite(ledRed, LOW);
+    digitalWrite(ledYellow, LOW);
+  }
 
-    else if (distance < 100)
-    {
-        noTone(buzzer);
-        digitalWrite(ledYellow, HIGH);
-        digitalWrite(ledRed, LOW);
-        digitalWrite(ledGreen, LOW);
-    }
-
-    //Distancia controlada,superior a 100cm 
-
-    else
-    {
-        noTone(buzzer);
-        digitalWrite(ledGreen, HIGH);
-        digitalWrite(ledRed, LOW);
-        digitalWrite(ledYellow, LOW);
-    }
-
-    delay(500);
+  delay(500); // Espera meio segundo antes da próxima leitura
 }
