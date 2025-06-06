@@ -1,0 +1,98 @@
+#include <EEPROM.h>
+
+// Definindo as portas
+
+#define buzzer 8
+#define ECHO_PIN 10
+#define TRIG_PIN 9
+#define ledGreen 6
+#define ledYellow 5
+#define ledRed 7
+#define botaoTragedia 2 // Botão para registrar manualmente
+#define EEPROM_ADDR 0   // Endereço para salvar o estado
+
+void setup()
+{
+    Serial.begin(115200);
+
+    pinMode(ledGreen, OUTPUT);
+    pinMode(TRIG_PIN, OUTPUT);
+    pinMode(ECHO_PIN, INPUT);
+    pinMode(ledRed, OUTPUT);
+    pinMode(buzzer, OUTPUT);
+    pinMode(ledYellow, OUTPUT);
+    pinMode(botaoTragedia, INPUT_PULLUP);
+
+    // Verifica se já houve alerta gravado
+    if (EEPROM.read(EEPROM_ADDR) == 1)
+    {
+        Serial.println(">>> ALERTA GRAVADO: Houve uma enchente anterior.");
+    }
+}
+
+// Calcula a distancia até o nivel da água
+
+float readDistanceCM()
+{
+    digitalWrite(TRIG_PIN, LOW);
+    delayMicroseconds(2);
+    digitalWrite(TRIG_PIN, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(TRIG_PIN, LOW);
+    int duration = pulseIn(ECHO_PIN, HIGH);
+    return duration * 0.034 / 2;
+}
+
+// Coloca no EEPROM a distancia em cm
+
+void loop()
+{
+    float distance = readDistanceCM();
+    Serial.print("Distância: ");
+    Serial.print(distance);
+    Serial.println(" cm");
+
+    bool Enchente = (distance < 15);
+
+    // CASOS
+
+    // Se botão foi pressionado (manual), grava alerta
+    if (digitalRead(botaoTragedia) == LOW)
+    {
+        EEPROM.update(EEPROM_ADDR, 1);
+        Serial.println(">> TRAGÉDIA REGISTRADA MANUALMENTE!");
+        delay(1000); // Debounce
+    }
+
+    // Caso o nivel da água esteja a 15cm ou menos do sensor
+    if (Enchente)
+    {
+        tone(buzzer, 1000);
+        digitalWrite(ledRed, HIGH);
+        digitalWrite(ledGreen, LOW);
+        digitalWrite(ledYellow, LOW);
+        EEPROM.update(EEPROM_ADDR, 1); // grava automático
+    }
+
+    // Caso o nivel da água esteja entre 16cm e 100cm
+
+    else if (distance < 100)
+    {
+        noTone(buzzer);
+        digitalWrite(ledYellow, HIGH);
+        digitalWrite(ledRed, LOW);
+        digitalWrite(ledGreen, LOW);
+    }
+
+    //Distancia controlada,superior a 100cm 
+
+    else
+    {
+        noTone(buzzer);
+        digitalWrite(ledGreen, HIGH);
+        digitalWrite(ledRed, LOW);
+        digitalWrite(ledYellow, LOW);
+    }
+
+    delay(500);
+}
