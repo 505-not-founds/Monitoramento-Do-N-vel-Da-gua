@@ -25,19 +25,15 @@ Chuvas intensas sempre foram um grande problema nas grandes cidades, Esses event
 A ideia do projeto é colocar o dispositivo em bueiros ou em lugares propensos a alagamentos, onde haverá um monitoramento com o sensor HC-SR04 medindo a distância do nível da água até o sensor, sendo possível verificar essa distância pela serial.
 
 -**CASO 1:**
-
 A distância entre o sensor e o nível da água é igual ou inferior a 15cm, o buzzer será ativado, o LED vermelho será aceso, e o acontecimento será armazenada na EEPROM.
 
 -**CASO 2:**
-
-Em situações de atenção — sendo essa a distância entre o sensor e o nível da água menor que 100cm — o LED amarelo será aceso, o buzzer não será ativado e o acontecimento não será armazenada na EEPROM.
+Em situações de atenção  sendo essa a distância entre o sensor e o nível da água menor que 100cm  o LED amarelo será aceso, o buzzer não será ativado e o acontecimento não será armazenada na EEPROM.
 
 -**CASO 3:**
-
 Caso nenhuma dessas situações aconteça, o LED verde estará sempre acesso, indicando segurança em relação ao nível da água.
 
 -**CASO 4:**
-
 O button serve para o armazanameto o acontecimento independente da situação do nivel da Água.
 
 ## LINKS
