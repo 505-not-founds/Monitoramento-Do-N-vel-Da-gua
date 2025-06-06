@@ -1,14 +1,17 @@
 # O problema 
 
-Chuvas intensas sempre foram um grande problema nas grandes cidades, Esses eventos climáticos têm provocado enchentes, causando prejuízos materiais e o aumentando de risco epidemicos. toda essa problematizaçõa esta diretamente ligadas na segurança e integridade dos cidadaos.
+Chuvas intensas sempre foram um grande problema nas grandes cidades, Esses eventos climáticos têm provocado enchentes, causando prejuízos materiais e aumentado risco epidemicos. toda essa problematizaçõa esta diretamente ligadas na segurança e integridade dos cidadaos.
+
 
 <div align="center">
   <img src="https://www.rbsdirect.com.br/imagesrc/25731199.jpg?w=1024&h=512&a=c&version=1575255600" alt="Enchente" width="600"/>
-  <br>
-</div>
-<br>
 
-<div>O projeto de monitoramento do nível da água tem como objetivo antecipar a identificação de situações de risco relacionadas a grandes enchentes em qualquer localidade. Dessa forma, mitigando ao máximo a exposição dos cidadaos em situação de perigo, podendo ser alertado o quanto antes </div>
+</div>
+
+
+Diferente do passado, hoje em dia temos a tecnologia ao nosso favor!
+
+<div> E dessa forma é estruturado O projeto de monitoramento do nível da água, que tem como principal objetivo antecipar a identificação de situações de risco relacionadas a grandes enchentes em qualquer localidade. Dessa forma, mitigando ao máximo a exposição dos cidadaos em situação de perigo, podendo ser alertado o quanto antes </div>
 
 ## Componentes:
 - **Arduino Uno**
@@ -20,7 +23,7 @@ Chuvas intensas sempre foram um grande problema nas grandes cidades, Esses event
 - **Buzzer**
 - **Button**
 
-## Funcioamento:
+## Funcionamento:
 
 A ideia do projeto é colocar o dispositivo em bueiros ou em lugares propensos a alagamentos, onde haverá um monitoramento com o sensor HC-SR04 medindo a distância do nível da água até o sensor, sendo possível verificar essa distância pela serial.
 
