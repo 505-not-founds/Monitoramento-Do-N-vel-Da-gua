@@ -39,5 +39,7 @@ O button serve para o armazanameto o acontecimento independente da situação do
 ## LINKS
 link para o WOAKWI:
 https://wokwi.com/projects/432710869528933377
+
 link para o youtube:
+https://youtu.be/J-MyVrX1KNM
 
